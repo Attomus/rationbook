@@ -1,0 +1,12 @@
+{
+  "version": "2.1.251-synthetic",
+  "rate_limits": {
+    "five_hour": { "used_percentage": 21.5, "resets_at": 1788112800 },
+    "seven_day": { "used_percentage": 67, "resets_at": 1788544800 },
+    "spend_limit": { "used_percentage": 120, "resets_at": 1788544800 }
+  },
+  "cwd": "/synthetic/private/workspace",
+  "session_id": "must-not-persist",
+  "transcript_path": "/synthetic/transcript.jsonl",
+  "future_field": { "ignored": true }
+}

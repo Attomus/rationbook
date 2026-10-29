@@ -1,0 +1,50 @@
+name: Bug report
+description: Report a reproducible Rationbook problem without sharing private provider data.
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not attach credentials, account identifiers, raw provider payloads, prompts, transcripts, or an unredacted Rationbook database.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Include what you expected and what Rationbook did instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: Give the shortest sequence that reproduces the problem.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Rationbook version or commit
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version and Mac architecture
+    validations:
+      required: true
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Affected provider
+      options:
+        - Codex
+        - Anthropic
+        - Both
+        - Neither / interface or lifecycle
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Sanitized diagnostics
+      description: Optional output from Copy diagnostics or `rationbook diagnostics --json`. Review it before posting.

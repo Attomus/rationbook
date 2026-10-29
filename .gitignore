@@ -1,0 +1,47 @@
+.DS_Store
+.build/
+DerivedData/
+build/
+dist/
+*.xcresult
+*.dSYM/
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
+xcuserdata/
+Rationbook.app/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p8
+*.p12
+*.mobileprovision
+*.provisionprofile
+*.cer
+*.crt
+*.der
+*.credentials
+credentials.json
+secrets.json
+
+# Local profiles, databases, and provider state
+*.profraw
+*.profdata
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+*.sqlite-shm
+*.sqlite-wal
+
+# Local packaging and public-cut output
+release/
+public-release/
+public-export/
+*.zip
+*.dmg
+*.pkg
+*.sha256

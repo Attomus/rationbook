@@ -1,0 +1,26 @@
+name: Feature request
+description: Propose a focused improvement that fits Rationbook's local-first scope.
+title: "[Feature] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Describe the operational need, not only the preferred implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Explain what the user or automation would observe.
+    validations:
+      required: true
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy and provider implications
+      description: Note any new credential, network, persistence, provider-contract, or background-work requirement.
+    validations:
+      required: true

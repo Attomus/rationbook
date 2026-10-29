@@ -1,0 +1,22 @@
+{
+  "rateLimits": {
+    "limitId": "legacy",
+    "primary": { "usedPercent": 99, "windowDurationMins": 60 }
+  },
+  "rateLimitsByLimitId": {
+    "codex": {
+      "limitId": "codex",
+      "limitName": "Codex",
+      "planType": "pro",
+      "primary": { "usedPercent": 32.25, "windowDurationMins": 300, "resetsAt": 1788112800 },
+      "secondary": { "usedPercent": 71, "windowDurationMins": 10080, "resetsAt": 1788544800 },
+      "futureOptionalField": { "ignored": true }
+    },
+    "reviews": {
+      "limitId": "reviews",
+      "limitName": "Code review",
+      "primary": { "usedPercent": 12, "windowDurationMins": 10080 }
+    }
+  },
+  "unknownTopLevel": "safe to ignore"
+}

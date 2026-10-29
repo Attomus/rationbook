@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**/*.md', 'PUBLIC_SOURCE_MANIFEST.tsv']
+  pull_request:
+    paths-ignore: ['**/*.md', 'PUBLIC_SOURCE_MANIFEST.tsv']
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Install ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes shellcheck
+      - name: Lint scripts
+        run: shellcheck scripts/*.sh
+      - name: Check public-source tooling
+        run: scripts/test-public-source-tools.sh
+      - name: Verify README assets
+        run: scripts/check-readme-screenshots.sh
+      - name: Verify history-free public export
+        run: |
+          parent=$(mktemp -d)
+          trap 'rm -rf "$parent"' EXIT
+          scripts/export-public-source.sh "$parent/Rationbook"
+          scripts/check-public-source.sh "$parent/Rationbook"
+
+  presentation:
+    runs-on: ubuntu-latest
+    container: swift:6.2
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Test current status and retained history
+        run: scripts/test-presentation.sh
