@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3
+
+- Show model-specific Claude weekly allowances, including Fable when reported by the account, with history and runway estimates.
+- Refresh Claude usage directly through the installed CLI without a model prompt or terminal interaction.
+- Preserve last-known readings when refresh fails and keep model freshness separate from passive account updates.
+
 ## 0.1.2 — 29 October 2026
 
 Attomus Labs release.

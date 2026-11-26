@@ -88,14 +88,43 @@ public struct ClaudeAdapter: ProviderAdapter {
 
     private func fetchObservation(now: Date) throws -> ProviderStatus {
         _ = try ExecutableLocator.locate("claude")
-        guard FileManager.default.fileExists(atPath: paths.claudeObservation.path) else {
-            return detect()
+        var engine: ClaudeUsageReader.Reading?
+        if FileManager.default.fileExists(atPath: paths.claudeEngineObservation.path) {
+            try paths.validateFileForRead(paths.claudeEngineObservation)
+            let data = try Data(contentsOf: paths.claudeEngineObservation)
+            guard data.count <= 65_536 else { throw ProcessRunnerError.invalidOutput("Claude usage observation exceeds 64 KiB.") }
+            engine = try RationbookJSON.decoder().decode(ClaudeUsageReader.Reading.self, from: data)
+            try QuotaValidation.observation(engine!.observation)
+            try QuotaValidation.windows(engine!.modelWindows)
         }
-        let data = try Data(contentsOf: paths.claudeObservation, options: [.mappedIfSafe])
-        guard data.count <= 64 * 1_024 else { throw ProcessRunnerError.invalidOutput("Claude observation exceeds 64 KiB.") }
-        let observation = try RationbookJSON.decoder().decode(ClaudeObservation.self, from: data)
-        try QuotaValidation.observation(observation)
+        var observation = engine?.observation
+        if FileManager.default.fileExists(atPath: paths.claudeObservation.path) {
+            try paths.validateFileForRead(paths.claudeObservation)
+            let data = try Data(contentsOf: paths.claudeObservation)
+            guard data.count <= 65_536 else { throw ProcessRunnerError.invalidOutput("Claude observation exceeds 64 KiB.") }
+            do {
+                let feed = try RationbookJSON.decoder().decode(ClaudeObservation.self, from: data)
+                try QuotaValidation.observation(feed)
+                if observation == nil || feed.observedAt > observation!.observedAt { observation = feed }
+            } catch {
+                if engine == nil { throw error }
+            }
+        }
+        guard let observation else { return detect() }
         var status = Self.normalize(observation, now: now, agentLabel: agentLabel)
+        if let engine {
+            status.windows += engine.modelWindows.map { window in
+                var value = window
+                value.freshness = FreshnessPolicy.classify(provider: "anthropic", observedAt: value.observedAt, now: now)
+                return value
+            }
+            status.capabilities.supportsOnDemandRefresh = true
+            status.capabilities.supportsModelScope = !engine.modelWindows.isEmpty
+            status.modelSpecificCapacity = engine.modelWindows.isEmpty ? "unknown" :
+                (status.windows.contains { $0.scope == "model" && [.fresh, .aging].contains($0.freshness) } ? "observed" : "stale")
+            status.source = SourceMetadata(name: "claude_code_usage", documentation: "undocumented", maturity: "experimental", testedToolVersion: engine.observation.claudeVersion)
+            return status
+        }
         do {
             if let supplement = try ModelCapacitySupplementManager(paths: paths).load(now: now) {
                 let modelWindows = ModelCapacitySupplementManager.quotaWindows(from: supplement, now: now)
@@ -335,54 +364,28 @@ public struct ClaudeIntegrationManager: Sendable {
         return destination
     }
 
-    /// Runs only Claude's built-in usage view; quota is read from the documented feed,
-    /// never from terminal output. An unexpected login or UI state times out safely.
+    /// Read structured usage through the installed CLI; never send a model prompt.
     public func refreshUsageAutomatically(helperSource: URL? = nil) async throws {
+        let executable = try ExecutableLocator.locate("claude")
+        do {
+            try await refreshUsage(executable: executable)
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            if requiresSignIn() { throw ClaudeIntegrationError.signInRequired }
+            throw error
+        }
+    }
+
+    func refreshUsage(executable: URL, timeout: TimeInterval = 40) async throws {
         guard let lock = ProviderRefreshLock(provider: "claude-usage", paths: paths) else {
             throw ClaudeIntegrationError.integrationBusy
         }
         defer { withExtendedLifetime(lock) {} }
-        let sessionID = UUID()
-        let sourceKey = FileDigest.sha256(Data(sessionID.uuidString.lowercased().utf8))
-        let command = try prepareUsageCommand(sessionID: sessionID, helperSource: helperSource)
-        let startedAt = Date()
-        let child = try ManagedChildProcess(
-            executable: URL(fileURLWithPath: "/bin/sh"), arguments: [command.path], terminal: true
-        )
-        child.standardOutput.readabilityHandler = { handle in _ = try? handle.read(upToCount: 8192) }
-        defer {
-            child.terminateAndReap()
-            child.standardOutput.readabilityHandler = nil
-            try? child.standardInput.close()
-            try? child.standardOutput.close()
-            try? child.standardError.close()
-        }
-        let started = ProcessInfo.processInfo.systemUptime
-        var nextEscape: TimeInterval = 5
-        while ProcessInfo.processInfo.systemUptime - started < 45 {
-            try Task.checkCancellation()
-            if child.wait(timeout: 0) { break }
-            let elapsed = ProcessInfo.processInfo.systemUptime - started
-            if elapsed >= nextEscape, nextEscape <= 20 {
-                try child.standardInput.write(contentsOf: Data([0x1b]))
-                nextEscape += 5
-            }
-            if FileManager.default.fileExists(atPath: paths.claudeObservation.path) {
-                try paths.validateFileForRead(paths.claudeObservation)
-                // Invalid cached content is not a reason to stop the session that can repair it.
-                if let data = try? Data(contentsOf: paths.claudeObservation), data.count <= 65_536,
-                   let observation = try? RationbookJSON.decoder().decode(ClaudeObservation.self, from: data),
-                   observation.sourceKey == sourceKey, observation.observedAt > startedAt,
-                   observation.rateLimits.fiveHour != nil || observation.rateLimits.sevenDay != nil {
-                    // Never send Return into an unverified screen, including login prompts.
-                    // The owned process group is closed by the deferred cleanup.
-                    return
-                }
-            }
-            try await Task.sleep(for: .milliseconds(250))
-        }
-        if requiresSignIn() { throw ClaudeIntegrationError.signInRequired }
-        throw ProcessRunnerError.invalidOutput(Self.refreshFailureMessage(needsSignIn: false))
+        var reading = try await ClaudeUsageReader.read(executable: executable, timeout: timeout)
+        reading.observation.claudeVersion = ProcessRunner.version(executable: executable)
+        try Task.checkCancellation()
+        try paths.atomicWrite(try RationbookJSON.encoder(pretty: false).encode(reading), to: paths.claudeEngineObservation)
     }
 
     public func requiresSignIn() -> Bool {

@@ -32,6 +32,7 @@ Sources/RationbookCore/BurnRate.swift
 Sources/RationbookCore/CLIIntegration.swift
 Sources/RationbookCore/CapacitySource.swift
 Sources/RationbookCore/ClaudeAdapter.swift
+Sources/RationbookCore/ClaudeUsageReader.swift
 Sources/RationbookCore/CodexAdapter.swift
 Sources/RationbookCore/Diagnostics.swift
 Sources/RationbookCore/FileTrust.swift
@@ -56,6 +57,7 @@ Tests/RationbookCoreTests/CapacitySourceTests.swift
 Tests/RationbookCoreTests/ClaudeFeedTests.swift
 Tests/RationbookCoreTests/ClaudeInstallTests.swift
 Tests/RationbookCoreTests/ClaudeRefreshTests.swift
+Tests/RationbookCoreTests/ClaudeUsageTests.swift
 Tests/RationbookCoreTests/CodexParsingTests.swift
 Tests/RationbookCoreTests/DiagnosticsTests.swift
 Tests/RationbookCoreTests/ExecutableLocatorTests.swift

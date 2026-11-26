@@ -25,13 +25,13 @@ Install and sign in to Codex and/or Claude Code using their own tools. Either pr
 
 1. Open Rationbook and refresh to read Codex capacity.
 2. In Settings, enable **Claude Code quota feed**, then choose **Refresh Claude**. Choose your automatic refresh interval there, or select Manual.
-3. If Claude needs interaction, choose **Open Claude in Terminal…**. Once usage appears, press **Esc**, type `/exit`, then return to Rationbook.
+3. If Claude needs interaction, choose **Open Claude in Terminal…**. Complete sign-in, return to Rationbook and choose **Refresh Claude**.
 
-Claude refresh runs the built-in `/usage` account-limit check without sending a model prompt or generating a model response. Claude Code can still incur background token usage; this is not a zero-token guarantee. See [provider behaviour, refresh timing and terms](docs/PROVIDERS.md).
+Claude refresh queries account limits through the installed Claude Code without sending a model prompt or generating a model response. Claude Code can still incur background token usage; this is not a zero-token guarantee. See [provider behaviour, refresh timing and terms](docs/PROVIDERS.md).
 
 ## Reading capacity
 
-The rings show Claude’s short and weekly windows, then Codex’s limiting window. The panel adds reset times, trends, reserves and forecasts. Old readings retain their last-known values with uncertainty shown; retired windows appear under **Previous readings**. Claude’s aggregate feed does not expose model-specific allowances. Forecasts are estimates, not guarantees that a task will fit.
+The rings show Claude’s short and weekly windows, then Codex’s limiting window. The panel adds reset times, trends, reserves and forecasts. Old readings retain their last-known values with uncertainty shown; retired windows appear under **Previous readings**. Claude refresh also shows model-specific weekly allowances, including Fable, when your account reports them. Their trends and runway use the same observation history as shared limits. Forecasts are estimates, not guarantees that a task will fit.
 
 | Essential · Light | Full · Dark |
 | --- | --- |

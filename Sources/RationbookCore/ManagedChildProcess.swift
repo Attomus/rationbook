@@ -16,7 +16,7 @@ public final class ManagedChildProcess: @unchecked Sendable {
     private var waitStatus: Int32?
     private var processGroupClosed = false
 
-    public init(executable: URL, arguments: [String], terminal: Bool = false) throws {
+    public init(executable: URL, arguments: [String], terminal: Bool = false, environmentOverrides: [String: String] = [:]) throws {
         let preparedExecutable = try ExecutableLocator.prepareForLaunch(executable)
         var launchSucceeded = false
         defer {
@@ -98,7 +98,7 @@ public final class ManagedChildProcess: @unchecked Sendable {
         }
 
         let argvStrings = [executable.path] + arguments
-        let environmentStrings = ProcessInfo.processInfo.environment.map { "\($0.key)=\($0.value)" }
+        let environmentStrings = ProcessInfo.processInfo.environment.merging(environmentOverrides) { _, value in value }.map { "\($0.key)=\($0.value)" }
         var spawnedPID: pid_t = 0
         let result = Self.withCStringArray(argvStrings) { argv in
             Self.withCStringArray(environmentStrings) { environment in

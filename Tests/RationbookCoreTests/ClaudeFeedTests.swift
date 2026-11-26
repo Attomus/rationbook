@@ -204,32 +204,27 @@ import Testing
         defer { try? FileManager.default.removeItem(at: root) }
         let paths = RationbookPaths(root: root.appendingPathComponent("data"))
         let source = root.appendingPathComponent("helper")
-        let observation = ClaudeObservation(observedAt: Date().addingTimeInterval(1), claudeVersion: "test",
-            rateLimits: .init(fiveHour: .init(usedPercentage: 20, resetsAt: nil)))
-        let fixture = root.appendingPathComponent("observation.json")
-        var encoded = try JSONSerialization.jsonObject(with: RationbookJSON.encoder().encode(observation)) as! [String: Any]
-        encoded["source_key"] = "SOURCE_KEY"
-        try JSONSerialization.data(withJSONObject: encoded).write(to: fixture)
-        let script = """
+        let script = #"""
         #!/bin/sh
-        cp '\(fixture.path)' "$2/claude-observation.json"
+        if [ "$1" = "--version" ]; then echo 'test'; exit; fi
+        IFS= read -r request
+        case "$request" in *get_usage*) ;; *) exit 1 ;; esac
+        id=$(printf '%s' "$request" | /usr/bin/sed -E 's/.*"request_id"[ ]*:[ ]*"([^"]*)".*/\1/')
         sleep 0.4
-        key=$(printf '%s' "$4" | /usr/bin/shasum -a 256 | /usr/bin/awk '{print $1}')
-        /usr/bin/sed "s/SOURCE_KEY/$key/" '\(fixture.path)' > "$2/next.json"
-        /bin/mv "$2/next.json" "$2/claude-observation.json"
+        printf '{"type":"control_response","response":{"request_id":"%s","subtype":"success","response":{"rate_limits_available":true,"rate_limits":{"five_hour":{"utilization":20}}}}}\n' "$id"
         exec sleep 60
-        """
+        """#
         try Data(script.utf8).write(to: source)
         try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: source.path)
         let manager = ClaudeIntegrationManager(paths: paths, settingsURL: root.appendingPathComponent("settings.json"))
-        _ = try manager.install(helperSource: source)
+        try paths.prepare()
         try paths.atomicWrite(Data("invalid cache".utf8), to: paths.claudeObservation)
         let started = Date()
-        try await manager.refreshUsageAutomatically()
+        try await manager.refreshUsage(executable: source)
         #expect(Date().timeIntervalSince(started) >= 0.4)
         #expect(ProviderRefreshLock(provider: "claude-usage", paths: paths) != nil)
-        let actual = try RationbookJSON.decoder().decode(ClaudeObservation.self, from: Data(contentsOf: paths.claudeObservation))
-        #expect(actual.rateLimits == observation.rateLimits)
+        let actual = try RationbookJSON.decoder().decode(ClaudeUsageReader.Reading.self, from: Data(contentsOf: paths.claudeEngineObservation))
+        #expect(actual.observation.rateLimits.fiveHour?.usedPercentage == 20)
     }
 
     @Test func cancelsOwnedSession() async throws {
@@ -242,7 +237,7 @@ import Testing
         try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: source.path)
         let manager = ClaudeIntegrationManager(paths: paths, settingsURL: root.appendingPathComponent("settings.json"))
         _ = try manager.install(helperSource: source)
-        let task = Task { try await manager.refreshUsageAutomatically() }
+        let task = Task { try await manager.refreshUsage(executable: source) }
         let deadline = Date().addingTimeInterval(2)
         while !FileManager.default.fileExists(atPath: pidFile.path), Date() < deadline {
             try await Task.sleep(for: .milliseconds(10))

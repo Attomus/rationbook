@@ -29,7 +29,7 @@ struct RationbookSettingsView: View {
             Button("Enable feed") { model.installClaudeFeed() }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Rationbook will add a status-line command to Claude Code settings, retain the prior status-line object for restoration, and process each complete status event transiently. Only documented aggregate quota fields are stored. Rationbook will also refresh usage through Claude Code in the background while the app is running, and when you open the panel or wake your Mac; sign-in stays in Claude Code.")
+            Text("Rationbook will add a status-line command to Claude Code settings, retain the prior status-line object for restoration, and process each complete status event transiently. The status line stores aggregate quota. Direct refresh also reads model-specific allowances when Claude Code supplies them. Rationbook will also refresh usage through Claude Code in the background while the app is running, and when you open the panel or wake your Mac; sign-in stays in Claude Code.")
         }
         .confirmationDialog("Remove the Claude Code quota feed?", isPresented: $confirmClaudeFeedUninstall, titleVisibility: .visible) {
             Button("Remove feed", role: .destructive) { model.uninstallClaudeFeed() }

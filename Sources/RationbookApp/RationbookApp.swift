@@ -391,10 +391,9 @@ final class RationbookAppModel: ObservableObject {
         let now = Date()
         let attemptKey = "\(configuration.defaultsPrefix).lastClaudeRefreshAttempt"
         let lastAttempt = UserDefaults.standard.object(forKey: attemptKey) as? Date
-        let windows = envelope.providers.first(where: { $0.provider == "anthropic" })?
-            .windows.filter { $0.scope == "account" } ?? []
+        // Passive account readings must not postpone model-specific usage refreshes.
         if !force {
-            guard claudeRefreshInterval.isDue(lastAttempt: lastAttempt, observations: windows.map(\.observedAt), now: now) else { return }
+            guard claudeRefreshInterval.isDue(lastAttempt: lastAttempt, observations: [], now: now) else { return }
         }
         UserDefaults.standard.set(now, forKey: attemptKey)
         claudeRefreshBaseline = now

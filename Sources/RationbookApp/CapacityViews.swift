@@ -97,7 +97,7 @@ struct CapacityProviderPanel: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Model-specific weekly")
                             .font(.caption.weight(.medium))
-                        Text("Not exposed by Claude Code's supported local quota feed")
+                        Text("No model-specific allowance reported by Claude Code")
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
@@ -705,7 +705,7 @@ struct ClaudeSetupRow: View {
 
     private var message: String {
         if isFeedInstalled {
-            return "Local feed installed · choose Refresh Claude in Terminal"
+            return "Local feed installed · choose Refresh Claude"
         }
         return provider.errors.first?.message ?? "Enable the local Claude Code quota feed in Settings"
     }

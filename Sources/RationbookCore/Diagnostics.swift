@@ -3,8 +3,8 @@
 import Foundation
 
 public enum RationbookBuild {
-    public static let version = "0.1.2"
-    public static let build = "4"
+    public static let version = "0.1.3"
+    public static let build = "5"
 }
 
 public struct RationbookDiagnosticReport: Codable, Equatable, Sendable {

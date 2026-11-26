@@ -56,6 +56,7 @@ public struct RationbookPaths: Sendable {
     }
 
     public var database: URL { root.appendingPathComponent("rationbook.sqlite3") }
+    public var claudeEngineObservation: URL { root.appendingPathComponent("claude-engine-observation.json") }
     public var claudeObservation: URL { root.appendingPathComponent("claude-observation.json") }
     public var modelCapacitySupplement: URL { root.appendingPathComponent("model-capacity-supplement.json") }
     public var claudeIntegration: URL { root.appendingPathComponent("claude-integration.json") }
@@ -156,6 +157,7 @@ public struct RationbookPaths: Sendable {
             URL(fileURLWithPath: database.path + "-wal"),
             URL(fileURLWithPath: database.path + "-shm"),
             claudeObservation,
+            claudeEngineObservation,
             modelCapacitySupplement,
             claudeIntegration,
             cliIntegration,

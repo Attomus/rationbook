@@ -4,7 +4,7 @@ Rationbook has no account service, advertising, analytics, telemetry, backend or
 
 ## Inputs and storage
 
-Rationbook reads Codex aggregate quota responses, Claude’s optional status-line feed, local settings, executable versions and login-item status. An optional supplement supplies model names, percentages, observation/reset times, labels and durations.
+Rationbook reads Codex aggregate quota responses, Claude’s optional status-line feed and structured usage responses from the installed Claude Code process, local settings, executable versions and login-item status. Structured usage observations store only quota windows, model labels, observation/reset times and CLI version; the raw response is discarded. An optional supplement supplies model names, percentages, observation/reset times, labels and durations.
 
 The helper processes complete status-line events transiently and forwards their original bytes to an existing command. It stores only aggregate quota, Claude version and one-way hashes of session/API-duration markers for replay detection. It does not retain prompts, responses, transcripts, raw session IDs, repository identity, working directories, model data from that event, cookies or credentials.
 
