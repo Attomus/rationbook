@@ -2,13 +2,13 @@
 
 An **Attomus Labs** project: Codex and Claude capacity in your macOS menu bar, with local history, reserve warnings and a CLI for automation.
 
-**0.1.2 · Apple Silicon · macOS 14+.** Official downloads are signed by Attomus Limited and notarised by Apple.
+**0.1.3 · Apple Silicon · macOS 14+.** Official downloads are signed by Attomus Limited and notarised by Apple.
 
 ![Rationbook menu-bar gauges](docs/screenshots/rationbook-menubar.png)
 
 ## Install
 
-[Download Rationbook](https://github.com/attomus/rationbook/releases/download/v0.1.2/Rationbook-0.1.2.zip), extract it and move Rationbook.app to Applications. The [release page](https://github.com/attomus/rationbook/releases/tag/v0.1.2) includes its SHA-256 checksum.
+[Download Rationbook](https://github.com/attomus/rationbook/releases/download/v0.1.3/Rationbook-0.1.3.zip), extract it and move Rationbook.app to Applications. The [release page](https://github.com/attomus/rationbook/releases/tag/v0.1.3) includes its SHA-256 checksum.
 
 ```sh
 # Menu-bar app
