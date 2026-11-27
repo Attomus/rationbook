@@ -19,7 +19,10 @@ struct ClaudeUsageReader {
             "--safe-mode", "--no-chrome", "--disable-slash-commands", "--strict-mcp-config",
             "--mcp-config", "{\"mcpServers\":{}}", "--tools", "", "--no-session-persistence",
             "--settings", "{\"fastMode\":false,\"disableAllHooks\":true}",
-        ], environmentOverrides: ["CLAUDE_CODE_DISABLE_FAST_MODE": "1", "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"])
+        ], environmentOverrides: [
+            "CLAUDE_CODE_DISABLE_FAST_MODE": "1", "DISABLE_TELEMETRY": "1",
+            "DISABLE_ERROR_REPORTING": "1", "DISABLE_AUTOUPDATER": "1",
+        ])
         defer {
             child.terminateAndReap()
             try? child.standardInput.close()
@@ -76,9 +79,11 @@ struct ClaudeUsageReader {
     }
 
     static func parse(_ payload: [String: Any], now: Date) throws -> Reading {
-        guard payload["rate_limits_available"] as? Bool == true,
-              let limits = payload["rate_limits"] as? [String: Any] else {
+        guard payload["rate_limits_available"] as? Bool == true else {
             throw ProcessRunnerError.invalidOutput("Claude Code has not supplied subscription limits. Check your Claude sign-in and retry.")
+        }
+        guard let limits = payload["rate_limits"] as? [String: Any] else {
+            throw ProcessRunnerError.invalidOutput("Claude is signed in but returned no quota data. Check Claude Code’s network access and retry. Previous readings are preserved.")
         }
         func limit(_ raw: Any?) throws -> ClaudeObservation.RateLimit? {
             guard let raw, !(raw is NSNull) else { return nil }

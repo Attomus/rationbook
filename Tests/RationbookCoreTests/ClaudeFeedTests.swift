@@ -207,6 +207,8 @@ import Testing
         let script = #"""
         #!/bin/sh
         if [ "$1" = "--version" ]; then echo 'test'; exit; fi
+        [ -z "$CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC" ] || exit 1
+        [ "$DISABLE_TELEMETRY:$DISABLE_ERROR_REPORTING:$DISABLE_AUTOUPDATER:$CLAUDE_CODE_DISABLE_FAST_MODE" = "1:1:1:1" ] || exit 1
         IFS= read -r request
         case "$request" in *get_usage*) ;; *) exit 1 ;; esac
         id=$(printf '%s' "$request" | /usr/bin/sed -E 's/.*"request_id"[ ]*:[ ]*"([^"]*)".*/\1/')
